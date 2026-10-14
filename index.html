@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="ko" class="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>M365 & Copilot 스마트 교육 대시보드</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'Pretendard', 'sans-serif'],
+                        mono: ['Fira Code', 'monospace'],
+                    },
+                    colors: {
+                        brand: {
+                            50: '#eff6ff',
+                            100: '#dbeafe',
+                            500: '#3b82f6',
+                            600: '#2563eb',
+                            900: '#1e3a8a',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css" rel="stylesheet">
+    <!-- 폰트어썸 아이콘 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { font-family: 'Pretendard', 'Inter', sans-serif; }
+        /* 스크롤바 디자인 */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        .dark ::-webkit-scrollbar-thumb { background: #475569; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        .dark ::-webkit-scrollbar-thumb:hover { background: #64748b; }
+        
+        .nav-item.active {
+            background-color: #eff6ff; /* brand-50 */
+            color: #2563eb; /* brand-600 */
+            border-right: 4px solid #2563eb;
+            font-weight: 600;
+        }
+        .dark .nav-item.active {
+            background-color: #1e3a8a; /* brand-900 */
+            color: #bfdbfe; /* brand-100 */
+            border-right: 4px solid #60a5fa;
+        }
+        
+        /* 알림 토스트 애니메이션 */
+        @keyframes slideInUp {
+            from { transform: translateY(100%); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        .toast-animate {
+            animation: slideInUp 0.3s ease-out forwards;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800 dark:bg-gray-950 dark:text-gray-200 transition-colors duration-300 overflow-hidden flex h-screen w-full">
+
+    <!-- 데스크탑 사이드바 -->
+    <aside class="hidden md:flex flex-col w-72 h-full bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800 shadow-sm z-20">
+        <div class="p-6 border-b border-gray-100 dark:border-gray-800">
+            <h1 class="text-xl font-bold leading-tight text-gray-900 dark:text-white">M365 & Copilot<br><span class="text-brand-600 dark:text-blue-400">스마트 교육 실습</span></h1>
+            <p class="mt-2 text-sm text-gray-500 dark:text-gray-400 font-medium">가치있는 미래교육 연구소<br>대표 김병찬</p>
+        </div>
+        
+        <nav class="flex-1 overflow-y-auto py-4" id="desktop-nav">
+            <button onclick="switchTab('module1')" class="nav-item w-full flex items-center px-6 py-3.5 text-left text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors active">
+                <i class="fa-solid fa-graduation-cap w-6 text-center mr-2"></i>
+                <span class="text-sm">1. M365 A3 및 기본 활용</span>
+            </button>
+            <button onclick="switchTab('module2')" class="nav-item w-full flex items-center px-6 py-3.5 text-left text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+                <i class="fa-solid fa-wand-magic-sparkles w-6 text-center mr-2"></i>
+                <span class="text-sm">2. Copilot 앱 연동 실습</span>
+            </button>
+            <button onclick="switchTab('module3')" class="nav-item w-full flex items-center px-6 py-3.5 text-left text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+                <i class="fa-solid fa-file-code w-6 text-center mr-2"></i>
+                <span class="text-sm">3. 데이터 구조화 AI (MD)</span>
+            </button>
+            <button onclick="switchTab('module4')" class="nav-item w-full flex items-center px-6 py-3.5 text-left text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+                <i class="fa-solid fa-robot w-6 text-center mr-2"></i>
+                <span class="text-sm">4. 심화 커스텀 AI (Studio)</span>
+            </button>
+        </nav>
+
+        <div class="p-4 border-t border-gray-100 dark:border-gray-800">
+            <button onclick="toggleTheme()" class="w-full flex justify-center items-center gap-2 py-2.5 px-4 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors font-medium text-sm">
+                <i class="fa-solid fa-moon dark:hidden"></i>
+                <i class="fa-solid fa-sun hidden dark:inline"></i>
+                <span class="dark:hidden">다크 모드</span>
+                <span class="hidden dark:inline">라이트 모드</span>
+            </button>
+        </div>
+    </aside>
+
+    <!-- 모바일 헤더 -->
+    <div class="md:hidden flex items-center justify-between fixed top-0 w-full h-16 px-4 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 z-30">
+        <div>
+            <h1 class="text-base font-bold text-gray-900 dark:text-white truncate">M365 & Copilot 실습</h1>
+            <p class="text-xs text-gray-500 dark:text-gray-400">대표 김병찬</p>
+        </div>
+        <div class="flex items-center gap-2">
+            <button onclick="toggleTheme()" class="p-2 text-gray-600 dark:text-gray-400">
+                <i class="fa-solid fa-moon dark:hidden text-lg"></i>
+                <i class="fa-solid fa-sun hidden dark:inline text-lg"></i>
+            </button>
+            <button onclick="toggleMobileMenu()" class="p-2 text-gray-600 dark:text-gray-400">
+                <i class="fa-solid fa-bars text-xl"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- 모바일 메뉴 오버레이 -->
+    <div id="mobile-menu" class="hidden fixed inset-0 bg-white dark:bg-gray-900 z-40 pt-16 flex flex-col">
+        <div class="p-4 border-b border-gray-100 dark:border-gray-800 flex justify-between items-center">
+            <span class="font-bold text-lg text-gray-900 dark:text-white">실습 목차</span>
+            <button onclick="toggleMobileMenu()" class="p-2 text-gray-600 dark:text-gray-400"><i class="fa-solid fa-xmark text-xl"></i></button>
+        </div>
+        <nav class="flex-1 overflow-y-auto p-4 flex flex-col gap-2" id="mobile-nav">
+            <button onclick="switchTab('module1'); toggleMobileMenu();" class="nav-item-mobile w-full flex items-center p-4 rounded-xl bg-gray-50 dark:bg-gray-800 text-left active-mobile">
+                <i class="fa-solid fa-graduation-cap w-6 mr-3 text-brand-600 dark:text-blue-400"></i> 1. M365 A3 기본 활용
+            </button>
+            <button onclick="switchTab('module2'); toggleMobileMenu();" class="nav-item-mobile w-full flex items-center p-4 rounded-xl bg-gray-50 dark:bg-gray-800 text-left">
+                <i class="fa-solid fa-wand-magic-sparkles w-6 mr-3 text-gray-500"></i> 2. Copilot 앱 연동
+            </button>
+            <button onclick="switchTab('module3'); toggleMobileMenu();" class="nav-item-mobile w-full flex items-center p-4 rounded-xl bg-gray-50 dark:bg-gray-800 text-left">
+                <i class="fa-solid fa-file-code w-6 mr-3 text-gray-500"></i> 3. 데이터 구조화 AI (MD)
+            </button>
+            <button onclick="switchTab('module4'); toggleMobileMenu();" class="nav-item-mobile w-full flex items-center p-4 rounded-xl bg-gray-50 dark:bg-gray-800 text-left">
+                <i class="fa-solid fa-robot w-6 mr-3 text-gray-500"></i> 4. 심화 커스텀 AI (Studio)
+            </button>
+        </nav>
+    </div>
+
+    <style>
+        .active-mobile { border: 2px solid #3b82f6; background-color: #eff6ff !important; }
+        .dark .active-mobile { border-color: #60a5fa; background-color: #1e3a8a !important; }
+    </style>
+
+    <main class="flex-1 h-full w-full overflow-y-auto pt-16 md:pt-0 scroll-smooth relative">
+        <div class="max-w-4xl mx-auto p-5 md:p-10 pb-24">
+            
+            <!-- 모듈 1: A3 및 기본 활용 -->
+            <section id="module1" class="content-section block animate-fade-in">
+                <div class="mb-8">
+                    <span class="inline-block px-3 py-1 bg-brand-100 text-brand-600 dark:bg-brand-900 dark:text-blue-300 rounded-full text-xs font-bold mb-3">Module 1</span>
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-2">M365 A3 라이선스와 기본 활용</h2>
+                    <p class="text-gray-600 dark:text-gray-400">교육용 M365 환경의 이해와 실무 적용 방법</p>
+                </div>
+
+                <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-gray-700 mb-6">
+                    <h3 class="text-xl font-bold flex items-center mb-4 text-gray-800 dark:text-gray-100">
+                        <i class="fa-solid fa-shield-halved text-brand-500 mr-2"></i> M365 A3 라이선스의 핵심 특징
+                    </h3>
+                    <ul class="space-y-3 text-gray-600 dark:text-gray-300">
+                        <li class="flex items-start"><i class="fa-solid fa-check text-green-500 mt-1 mr-3"></i> <div><strong>프리미엄 데스크톱 앱:</strong> Word, Excel, PowerPoint 등을 웹과 PC에 설치하여 완벽히 활용 가능.</div></li>
+                        <li class="flex items-start"><i class="fa-solid fa-check text-green-500 mt-1 mr-3"></i> <div><strong>안전한 클라우드:</strong> 넉넉한 OneDrive 용량 제공 및 Teams를 통한 파일 실시간 공동 작업 지원.</div></li>
+                        <li class="flex items-start"><i class="fa-solid fa-lock text-brand-500 mt-1 mr-3"></i> <div><strong>엔터프라이즈 데이터 보호(EDP):</strong> 교사와 학생의 데이터, 프롬프트는 외부 AI 모델 학습에 절대 사용되지 않아 안전합니다.</div></li>
+                    </ul>
+                </div>
+
+                <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-gray-700">
+                    <h3 class="text-xl font-bold flex items-center mb-4 text-gray-800 dark:text-gray-100">
+                        <i class="fa-solid fa-school text-brand-500 mr-2"></i> 교육 현장 적용 방안
+                    </h3>
+                    <div class="grid md:grid-cols-2 gap-4">
+                        <div class="p-4 bg-gray-50 dark:bg-gray-900 rounded-xl">
+                            <h4 class="font-bold text-gray-800 dark:text-gray-200 mb-2">행정 업무 효율화</h4>
+                            <p class="text-sm text-gray-600 dark:text-gray-400">OneDrive 문서 공유를 통해 동학년 교사 간 기안문, 평가표 등을 실시간으로 동시 작성하여 취합의 번거로움을 줄입니다.</p>
+                        </div>
+                        <div class="p-4 bg-gray-50 dark:bg-gray-900 rounded-xl">
+                            <h4 class="font-bold text-gray-800 dark:text-gray-200 mb-2">스마트 교실 연동</h4>
+                            <p class="text-sm text-gray-600 dark:text-gray-400">Teams를 활용하여 온라인 과제 배포, 수합 및 학생 간 협업 프로젝트 환경을 원스톱으로 구성합니다.</p>
+                        </div>
+                    </div>
+                    <div class="mt-6 p-4 border-l-4 border-yellow-400 bg-yellow-50 dark:bg-yellow-900/20 text-yellow-800 dark:text-yellow-200 rounded-r-lg text-sm">
+                        <i class="fa-solid fa-triangle-exclamation mr-1"></i> <strong>실습 전 확인사항:</strong> microsoft365.com에 로그인 후 우측 상단 또는 좌측 메뉴에 Copilot 아이콘이 정상적으로 보이는지 확인해 주세요.
+                    </div>
+                </div>
+            </section>
+
+            <!-- 모듈 2: 앱 연동 실습 -->
+            <section id="module2" class="content-section hidden animate-fade-in">
+                <div class="mb-8">
+                    <span class="inline-block px-3 py-1 bg-brand-100 text-brand-600 dark:bg-brand-900 dark:text-blue-300 rounded-full text-xs font-bold mb-3">Module 2</span>
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-2">Copilot M365 앱 연동 실습</h2>
+                    <p class="text-gray-600 dark:text-gray-400">Word와 Outlook에서 생성형 AI를 활용한 문서 초안 작성 및 맞춤형 이메일 소통</p>
+                </div>
+
+                <div class="space-y-6">
+                    <!-- 실습 1: 워드 -->
+                    <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm border-l-4 border-blue-500">
+                        <h3 class="text-xl font-bold mb-2 flex items-center text-gray-800 dark:text-gray-100">
+                            <i class="fa-regular fa-file-word text-blue-600 dark:text-blue-400 mr-2 text-2xl"></i> [실습 1] Word - 가정통신문 작성
+                        </h3>
+                        <ol class="list-decimal list-inside text-gray-600 dark:text-gray-300 space-y-2 mb-4 text-sm md:text-base">
+                            <li>빈 Word 문서를 엽니다.</li>
+                            <li>본문 좌측에 나타나는 Copilot 아이콘을 클릭합니다.</li>
+                            <li>아래 프롬프트를 복사하여 붙여넣고 실행합니다.</li>
+                        </ol>
+                        
+                        <div class="relative bg-gray-50 dark:bg-gray-900 rounded-xl p-4 border border-gray-200 dark:border-gray-700 group">
+                            <p id="prompt-1" class="text-gray-800 dark:text-gray-200 text-sm md:text-base leading-relaxed pr-10">너는 중학교 담임교사야. 다음 주 금요일 오후 2시에 학교 강당에서 열리는 '학부모 대상 디지털 리터러시 특강' 안내 가정통신문 초안을 작성해 줘. 학부모님들이 부담 없이 참석할 수 있도록 친절한 어조로 작성하고, 맨 아래에는 참석 여부를 회신할 수 있는 [절취선] 양식을 만들어 줘.</p>
+                            <button onclick="copyText('prompt-1')" class="absolute top-3 right-3 p-2 bg-white dark:bg-gray-800 shadow-sm rounded-lg text-gray-500 hover:text-brand-600 hover:bg-brand-50 transition-colors opacity-100 md:opacity-0 group-hover:opacity-100 focus:opacity-100" aria-label="복사하기">
+                                <i class="fa-regular fa-copy"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- 실습 2: Outlook (PPT 교체) -->
+                    <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm border-l-4 border-teal-500">
+                        <h3 class="text-xl font-bold mb-2 flex items-center text-gray-800 dark:text-gray-100">
+                            <i class="fa-regular fa-envelope text-teal-600 dark:text-teal-400 mr-2 text-2xl"></i> [실습 2] Outlook - 안내 메일 초안 작성
+                        </h3>
+                        <ol class="list-decimal list-inside text-gray-600 dark:text-gray-300 space-y-2 mb-4 text-sm md:text-base">
+                            <li>웹 브라우저에서 <strong>Outlook</strong>을 열고 <strong>새 메일</strong>을 클릭합니다.</li>
+                            <li>메일 본문 입력창 도구 모음에서 <strong>Copilot 아이콘(초안 작성)</strong>을 클릭합니다.</li>
+                            <li>Word에서 작성한 내용을 바탕으로 학부모님들께 보낼 요약 안내 메일 프롬프트를 실행합니다.</li>
+                        </ol>
+                        
+                        <div class="relative bg-gray-50 dark:bg-gray-900 rounded-xl p-4 border border-gray-200 dark:border-gray-700 group">
+                            <p id="prompt-2" class="text-gray-800 dark:text-gray-200 text-sm md:text-base leading-relaxed pr-10">앞서 기획한 '학부모 대상 디지털 리터러시 특강' 안내를 학부모님들께 이메일로 발송하려고 해. 메일 제목을 시선을 끌 수 있게 작성하고, 본문은 바쁜 학부모님들이 핵심(일시, 장소, 목적)만 빠르게 파악할 수 있도록 글머리 기호를 사용하여 요약해 줘. 마지막에는 참석을 독려하는 따뜻한 인사말을 덧붙여 줘.</p>
+                            <button onclick="copyText('prompt-2')" class="absolute top-3 right-3 p-2 bg-white dark:bg-gray-800 shadow-sm rounded-lg text-gray-500 hover:text-teal-600 hover:bg-teal-50 transition-colors opacity-100 md:opacity-0 group-hover:opacity-100 focus:opacity-100">
+                                <i class="fa-regular fa-copy"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 모듈 3: MD 활용 웹 에이전트 -->
+            <section id="module3" class="content-section hidden animate-fade-in">
+                <div class="mb-8">
+                    <span class="inline-block px-3 py-1 bg-brand-100 text-brand-600 dark:bg-brand-900 dark:text-blue-300 rounded-full text-xs font-bold mb-3">Module 3</span>
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-2">데이터 구조화로 맞춤형 에이전트 만들기 (MD)</h2>
+                    <p class="text-gray-600 dark:text-gray-400">파일 업로드 제약을 넘어, 마크다운(MD) 변환으로 복합 데이터를 에이전트에 주입하기</p>
+                </div>
+
+                <div class="bg-red-50 dark:bg-red-900/20 text-red-800 dark:text-red-300 p-4 rounded-xl mb-6 text-sm flex items-start">
+                    <i class="fa-solid fa-circle-exclamation mt-1 mr-3 text-red-500 text-lg"></i>
+                    <div>
+                        <strong>A3 환경의 제약 극복:</strong> 에이전트에 파일 업로드가 안 된다면?<br>
+                        👉 Copilot 채팅에서 <strong>'이미지 캡처본 + 텍스트 데이터'를 한 번에 MD 코드로 변환</strong>하여 에이전트 지침에 텍스트 형태로 직접 주입하면 완벽히 해결됩니다!
+                    </div>
+                </div>
+
+                <div class="space-y-6">
+                    <!-- 예시 1: 흥미 위주 실습 -->
+                    <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-gray-700">
+                        <span class="bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200 text-xs font-semibold px-2.5 py-0.5 rounded mb-3 inline-block">예시 1 (Fun)</span>
+                        <h3 class="text-xl font-bold mb-2 text-gray-800 dark:text-gray-100">나의 취향과 카톡 말투를 합친 '아바타 AI'</h3>
+                        <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">쇼핑몰 장바구니 캡처본과 카톡 대화 발췌본을 동시에 분석하여 입체적인 페르소나 MD 데이터를 만듭니다.</p>
+                        
+                        <ol class="list-decimal list-inside text-gray-600 dark:text-gray-300 space-y-2 mb-4 text-sm md:text-base">
+                            <li>일반 Copilot 채팅창을 열고 <strong>장바구니 캡처 이미지</strong>를 첨부합니다.</li>
+                            <li>아래 프롬프트를 복사하여 실행합니다. (카톡 대화 샘플이 포함되어 있습니다.)</li>
+                        </ol>
+                        
+                        <div class="relative bg-gray-50 dark:bg-gray-900 rounded-xl p-4 border border-gray-200 dark:border-gray-700 group mb-4">
+                            <p id="prompt-3-1" class="text-gray-800 dark:text-gray-200 text-sm whitespace-pre-wrap pr-10">첨부된 [장바구니 이미지]와 아래 제공된 나의 [카톡 대화 샘플]을 융합 분석해서 나를 복제해 줘.
+
+[나의 카톡 대화 샘플]
+"오키오키 확인! 아니 근데 진짜 대박 ㅋㅋㅋ 오늘 점심 뭐먹지? 그치그치 완전 공감, 난 돈까스! 넵! 바로 처리할게요~ 👍"
+
+분석한 '나의 소비 성향'과 '자주 쓰는 말투/이모티콘' 패턴을 표로 정리해 줘.
+중요: 내가 에이전트에 쉽게 복사해 넣을 수 있도록, 결과물은 시각적인 표로 그리지 말고 반드시 **마크다운 코드 블록(```markdown ... ```)** 안에 텍스트로만 출력해 줘.</p>
+                            <button onclick="copyText('prompt-3-1')" class="absolute top-3 right-3 p-2 bg-white dark:bg-gray-800 shadow-sm rounded-lg text-gray-500 hover:text-brand-600 hover:bg-brand-50 transition-colors opacity-100 md:opacity-0 group-hover:opacity-100">
+                                <i class="fa-regular fa-copy"></i>
+                            </button>
+                        </div>
+
+                        <div class="p-4 bg-blue-50/50 dark:bg-blue-900/10 rounded-xl border border-blue-100 dark:border-blue-800">
+                            <p class="text-sm font-semibold text-blue-800 dark:text-blue-300 mb-2">👉 생성된 MD 복사 후 새 에이전트 지침(Instructions)에 입력:</p>
+                            <div class="relative group">
+                                <p id="prompt-3-2" class="text-gray-800 dark:text-gray-200 text-sm whitespace-pre-wrap pr-10">너는 아래 [나의 페르소나 MD 데이터]를 학습한 내 클론 AI야. 누군가 질문하면 기계처럼 답하지 말고 내 '카톡 말투'를 그대로 흉내 내서 대답해. 선물이나 맛집을 추천할 때는 내 '소비 성향'을 적극 반영해 줘.
+
+[나의 페르소나 MD 데이터]
+(⚠️ 여기에 추출된 마크다운 코드 블록을 붙여넣으세요!)</p>
+                                <button onclick="copyText('prompt-3-2')" class="absolute top-1 right-1 p-2 bg-white dark:bg-gray-800 shadow-sm rounded-lg text-gray-500 hover:text-brand-600 hover:bg-brand-50 transition-colors opacity-100 md:opacity-0 group-hover:opacity-100">
+                                    <i class="fa-regular fa-copy"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 예시 2: 업무 위주 실습 -->
+                    <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-gray-700">
+                        <span class="bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-200 text-xs font-semibold px-2.5 py-0.5 rounded mb-3 inline-block">예시 2 (Work)</span>
+                        <h3 class="text-xl font-bold mb-2 text-gray-800 dark:text-gray-100">나만의 '수행평가 자동 채점 및 피드백 AI' 만들기</h3>
+                        <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">줄글로 작성된 거친 '평가 기준표(루브릭)'를 MD 표로 구조화하여 에이전트의 지침에 고정합니다. 이후 학생들의 답안만 반복 입력하면 기준에 맞춰 일관성 있게 채점하는 완벽한 재사용 에이전트를 완성합니다.</p>
+
+                        <ol class="list-decimal list-inside text-gray-600 dark:text-gray-300 space-y-2 mb-4 text-sm md:text-base">
+                            <li>일반 Copilot 채팅창에 아래 프롬프트를 입력하여 <strong>평가 기준을 MD 코드로 변환</strong>합니다.</li>
+                        </ol>
+
+                        <div class="relative bg-gray-50 dark:bg-gray-900 rounded-xl p-4 border border-gray-200 dark:border-gray-700 group mb-4">
+                            <p id="prompt-3-3" class="text-gray-800 dark:text-gray-200 text-sm whitespace-pre-wrap pr-10">아래 메모해 둔 [과학 에세이 평가 기준]을 분석하기 좋은 마크다운 표로 정리해 줘. 열(Column)은 [평가 항목, 상(A), 중(B), 하(C)]로 구성해 줘.
+반드시 복사하기 쉽게 **마크다운 코드 블록(```markdown ... ```)** 안에 텍스트로만 넣어줘.
+
+[과학 에세이 평가 기준]
+논리성은 주장이 명확하고 근거가 타당하면 상, 주장은 있는데 근거가 부족하면 중, 둘다 안되면 하. 표현력은 과학 용어 3개 이상 쓰면 상, 1~2개면 중, 없으면 하. 분량은 500자 이상 상, 300자 이상 중, 미달이면 하.</p>
+                            <button onclick="copyText('prompt-3-3')" class="absolute top-3 right-3 p-2 bg-white dark:bg-gray-800 shadow-sm rounded-lg text-gray-500 hover:text-emerald-600 hover:bg-emerald-50 transition-colors opacity-100 md:opacity-0 group-hover:opacity-100">
+                                <i class="fa-regular fa-copy"></i>
+                            </button>
+                        </div>
+                        
+                        <div class="p-4 bg-emerald-50/50 dark:bg-emerald-900/10 rounded-xl border border-emerald-100 dark:border-emerald-800">
+                            <p class="text-sm font-semibold text-emerald-800 dark:text-emerald-300 mb-2">👉 생성된 MD 복사 후 새 에이전트 지침(Instructions)에 입력:</p>
+                            <div class="relative group">
+                                <p id="prompt-3-4" class="text-gray-800 dark:text-gray-200 text-sm whitespace-pre-wrap pr-10">너는 우리 학교의 공정한 '수행평가 채점 보조 AI'야. 아래 [평가 기준 MD 표]를 엄격하게 적용하여, 내가 앞으로 입력할 '학생의 에세이 답안'을 평가해 줘. 
+평가 결과는 각 항목별 등급(A/B/C)과 총평, 그리고 학생을 위한 따뜻한 피드백으로 구성해 줘.
+
+[평가 기준 MD 표]
+(⚠️ 여기에 추출된 마크다운 코드 블록을 붙여넣으세요!)</p>
+                                <button onclick="copyText('prompt-3-4')" class="absolute top-1 right-1 p-2 bg-white dark:bg-gray-800 shadow-sm rounded-lg text-gray-500 hover:text-emerald-600 hover:bg-emerald-50 transition-colors opacity-100 md:opacity-0 group-hover:opacity-100">
+                                    <i class="fa-regular fa-copy"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="mt-4 p-3 bg-gray-50 dark:bg-gray-800/50 text-gray-600 dark:text-gray-300 rounded-lg text-sm">
+                            <i class="fa-solid fa-lightbulb text-yellow-500 mr-2"></i> <strong>테스트:</strong> 에이전트가 완성되면 우측 테스트 창에 <em>"학생 답안: 지구온난화는 심각합니다. 왜냐하면 북극곰이 살 곳이 없어지기 때문입니다. (150자)"</em> 라고만 입력해 보세요. 에이전트가 저장된 기준표를 바탕으로 즉시 채점해 줍니다!
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 모듈 4: Copilot Studio -->
+            <section id="module4" class="content-section hidden animate-fade-in">
+                <div class="mb-8">
+                    <span class="inline-block px-3 py-1 bg-brand-100 text-brand-600 dark:bg-brand-900 dark:text-blue-300 rounded-full text-xs font-bold mb-3">Module 4 (심화)</span>
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-2">한계 돌파! Studio로 다중 파일 기반 에이전트 구축</h2>
+                    <p class="text-gray-600 dark:text-gray-400">Copilot Studio의 로컬 파일 다중 업로드 기능을 활용하여 강력한 커스텀 지식망 만들기</p>
+                </div>
+
+                <div class="bg-purple-50 dark:bg-purple-900/20 text-purple-800 dark:text-purple-300 p-4 rounded-xl mb-6 text-sm border border-purple-200 dark:border-purple-800 flex items-start">
+                    <i class="fa-solid fa-file-arrow-up mt-1 mr-3 text-purple-600 dark:text-purple-400 text-lg"></i>
+                    <div>
+                        <strong>강력한 Studio의 지식 베이스:</strong><br>
+                        A3 기본 에이전트와 달리, Studio에서는 여러 개의 로컬 파일(.txt, .pdf, .docx 등)을 동시에 업로드하여 지식으로 삼을 수 있습니다. 방대한 양의 개인 데이터나 학교 규정집 등을 조합하기에 최적의 환경입니다.
+                    </div>
+                </div>
+
+                <div class="space-y-6">
+                    <!-- 예시 1: 흥미 위주 실습 (카톡+관심사 파일 다중 업로드) -->
+                    <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm border-l-4 border-purple-500">
+                        <span class="bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200 text-xs font-semibold px-2.5 py-0.5 rounded mb-3 inline-block">예시 1 (Fun)</span>
+                        <h3 class="text-xl font-bold mb-2 text-gray-800 dark:text-gray-100">나의 완벽한 딥러닝 클론 (카톡 + 쇼핑 리스트)</h3>
+                        <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">카톡 대화 백업 파일(.txt)과 위시리스트 문서(.docx)를 <strong>동시에 업로드</strong>하여 나의 모든 것을 아는 AI를 만듭니다.</p>
+                        
+                        <ol class="list-decimal list-inside text-gray-600 dark:text-gray-300 space-y-2 mb-4 text-sm md:text-base">
+                            <li>Copilot Studio 접속 후 <strong>'새 Copilot'</strong> 생성.</li>
+                            <li><strong>지식(Knowledge) 탭</strong>에서 아래 두 가지 파일을 동시에 업로드합니다.
+                                <ul class="list-disc list-inside ml-6 mt-1 text-sm text-gray-500">
+                                    <li>PC 카카오톡에서 내보낸 <code>대화내용.txt</code> 파일</li>
+                                    <li>내가 좋아하는 관심사/쇼핑 목록을 적은 <code>나의위시리스트.docx</code> 파일</li>
+                                </ul>
+                            </li>
+                            <li>지침(Instructions)에 아래 내용을 복사하여 넣습니다. (본인 이름 수정)</li>
+                        </ol>
+                        
+                        <div class="relative bg-gray-50 dark:bg-gray-900 rounded-xl p-4 border border-gray-200 dark:border-gray-700 group mb-4">
+                            <p id="prompt-6" class="text-gray-800 dark:text-gray-200 text-sm whitespace-pre-wrap pr-10">너는 업로드된 [대화내용.txt]와 [나의위시리스트.docx]를 완벽하게 학습한 '나의 완벽한 디지털 클론'이야. 
+업로드된 카톡 파일에서 [본인 이름 입력] 이라는 화자의 말투, 이모티콘 사용법을 흉내 내어 진짜 나처럼 리얼하게 대답해야 해. 
+누군가 나에게 줄 선물을 물어보거나 주말 계획을 물어보면, 반드시 [나의위시리스트.docx]의 취향과 관심사를 기반으로 답변을 구성해 줘.</p>
+                            <button onclick="copyText('prompt-6')" class="absolute top-3 right-3 p-2 bg-white dark:bg-gray-800 shadow-sm rounded-lg text-gray-500 hover:text-purple-600 hover:bg-purple-50 transition-colors opacity-100 md:opacity-0 group-hover:opacity-100">
+                                <i class="fa-regular fa-copy"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- 예시 2: 업무 위주 실습 (규정집+학사일정 파일) -->
+                    <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm border-l-4 border-indigo-500">
+                        <span class="bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-200 text-xs font-semibold px-2.5 py-0.5 rounded mb-3 inline-block">예시 2 (Work)</span>
+                        <h3 class="text-xl font-bold mb-2 text-gray-800 dark:text-gray-100">학교 규정 및 학사일정 마스터 AI</h3>
+                        <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">학교의 방대한 내부 규정집과 연간 학사일정 PDF를 업로드하여, 교직원과 학부모의 질문에 즉각 대응하는 챗봇을 구성합니다.</p>
+                        
+                        <ol class="list-decimal list-inside text-gray-600 dark:text-gray-300 space-y-2 mb-4 text-sm md:text-base">
+                            <li><strong>지식(Knowledge) 탭</strong>에 학교 공식 문서 파일들(예: <code>2026_학사일정.pdf</code>, <code>학교생활규정.pdf</code>)을 다중 업로드합니다.</li>
+                            <li>지침(Instructions)에 아래 내용을 복사하여 넣고 권한을 설정합니다.</li>
+                        </ol>
+
+                        <div class="relative bg-gray-50 dark:bg-gray-900 rounded-xl p-4 border border-gray-200 dark:border-gray-700 group mb-2">
+                            <p id="prompt-7" class="text-gray-800 dark:text-gray-200 text-sm whitespace-pre-wrap pr-10">너는 우리 학교의 행정 마스터 챗봇이야. 너의 유일한 정보 출처는 업로드된 [2026_학사일정.pdf]와 [학교생활규정.pdf] 문서야. 
+교사나 학부모가 질문하면 해당 문서에서 정확한 조항이나 날짜를 찾아 근거를 제시하며 정중하게 답변해 줘. 만약 업로드된 파일에 없는 내용이라면 "해당 규정은 문서에서 찾을 수 없습니다. 교무실로 문의 바랍니다."라고 단호하게 답변하여 환각(Hallucination)을 방지해.</p>
+                            <button onclick="copyText('prompt-7')" class="absolute top-3 right-3 p-2 bg-white dark:bg-gray-800 shadow-sm rounded-lg text-gray-500 hover:text-indigo-600 hover:bg-indigo-50 transition-colors opacity-100 md:opacity-0 group-hover:opacity-100">
+                                <i class="fa-regular fa-copy"></i>
+                            </button>
+                        </div>
+                        <div class="p-3 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-800 dark:text-indigo-200 rounded-lg text-sm">
+                            👉 <strong>테스트:</strong> "체험학습 신청은 며칠 전까지 해야 해?", "2학기 중간고사 날짜가 언제야?" 라고 질문해 보세요. 문서 내용만 바탕으로 정확히 안내합니다.
+                        </div>
+                    </div>
+
+                </div>
+            </section>
+
+            <!-- 모듈 4: Copilot Studio -->
+            <section id="module4" class="content-section hidden animate-fade-in">
+                <div class="mb-8">
+                    <span class="inline-block px-3 py-1 bg-brand-100 text-brand-600 dark:bg-brand-900 dark:text-blue-300 rounded-full text-xs font-bold mb-3">Module 4 (심화 실습)</span>
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-2">카톡 대화 백업으로 '내 클론 AI' 만들기 (Studio)</h2>
+                    <p class="text-gray-600 dark:text-gray-400">카카오톡 대화 내용 내보내기 파일(.txt)을 통째로 업로드하여 내 말투를 완벽 복사하기</p>
+                </div>
+
+                <div class="bg-green-50 dark:bg-green-900/20 text-green-800 dark:text-green-300 p-4 rounded-xl mb-6 text-sm border border-green-200 dark:border-green-800 flex items-start">
+                    <i class="fa-solid fa-file-arrow-up mt-1 mr-3 text-green-600 dark:text-green-400 text-lg"></i>
+                    <div>
+                        <strong>왜 Copilot Studio를 쓰나요?</strong><br>
+                        실제 카카오톡 대화 내역은 수천 줄이 넘어가기 때문에 채팅창에 텍스트로 복사해서 붙여넣기가 불가능합니다. 이럴 때 <strong>로컬 파일(.txt, .pdf 등) 직접 업로드 기능</strong>이 있는 Studio를 활용하면 방대한 양의 개인 데이터나 규정집을 한 번에 학습시킬 수 있습니다.
+                    </div>
+                </div>
+
+                <div class="space-y-6">
+                    <!-- 실습 4-1: 파일 준비 -->
+                    <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-gray-700">
+                        <h3 class="text-xl font-bold mb-2 text-gray-800 dark:text-gray-100">[실습 4-1] 첨부할 '카카오톡 백업 파일' 준비하기</h3>
+                        
+                        <div class="grid md:grid-cols-2 gap-4 mt-4">
+                            <div class="p-4 bg-gray-50 dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700">
+                                <h4 class="font-bold text-gray-800 dark:text-gray-200 mb-2 text-brand-600 dark:text-blue-400"><i class="fa-solid fa-mobile-screen mr-2"></i>방법 A: 실제 내 카톡 대화 내보내기</h4>
+                                <ol class="list-decimal list-inside text-sm text-gray-600 dark:text-gray-400 space-y-1">
+                                    <li>친한 친구와의 카카오톡 채팅방 열기</li>
+                                    <li>우측 상단 메뉴(三) > <strong>채팅방 설정</strong>(톱니바퀴)</li>
+                                    <li><strong>'대화 내용 내보내기'</strong> > 텍스트만 보내기</li>
+                                    <li>PC 바탕화면에 <code>KakaoTalk_Chats.txt</code> 저장</li>
+                                </ol>
+                            </div>
+                            
+                            <div class="p-4 bg-gray-50 dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700">
+                                <h4 class="font-bold text-gray-800 dark:text-gray-200 mb-2 text-purple-600 dark:text-purple-400"><i class="fa-solid fa-file-lines mr-2"></i>방법 B: 실습용 샘플 파일 만들기</h4>
+                                <p class="text-sm text-gray-600 dark:text-gray-400 mb-2">개인정보가 부담스럽다면 메모장에 아래 내용을 복사해서 <code>내_프로필.txt</code>로 저장하세요.</p>
+                                <div class="relative group">
+                                    <p id="prompt-5" class="bg-white dark:bg-gray-800 p-2 rounded text-xs text-gray-700 dark:text-gray-300 font-mono h-24 overflow-y-auto">[김병찬] [오전 10:30] 오키오키 확인!
+[김병찬] [오전 10:31] 아니 근데 진짜 대박 ㅋㅋㅋ
+[친구] [오전 10:35] 오늘 점심 뭐먹지?
+[김병찬] [오전 10:36] 그치그치 완전 공감, 난 돈까스! 넵! 바로 처리할게요~ 👍</p>
+                                    <button onclick="copyText('prompt-5')" class="absolute top-1 right-1 p-1 bg-gray-100 dark:bg-gray-700 shadow-sm rounded text-gray-500 hover:text-brand-600 transition-colors opacity-100 md:opacity-0 group-hover:opacity-100">
+                                        <i class="fa-regular fa-copy"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 실습 4-2: 에이전트 구축 -->
+                    <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm border-l-4 border-purple-500">
+                        <h3 class="text-xl font-bold mb-2 flex items-center text-gray-800 dark:text-gray-100">
+                            <i class="fa-solid fa-microchip text-purple-600 dark:text-purple-400 mr-2 text-2xl"></i> [실습 4-2] Studio에 카톡 파일 업로드 및 클론 생성
+                        </h3>
+                        <ol class="list-decimal list-inside text-gray-600 dark:text-gray-300 space-y-2 mb-4 text-sm md:text-base">
+                            <li>앱 런처(점 9개)에서 <strong>Copilot Studio</strong> 접속 (또는 copilotstudio.microsoft.com).</li>
+                            <li>'새 Copilot' 생성 클릭 후 이름(예: [본인이름] 클론 AI) 입력.</li>
+                            <li><strong>지식(Knowledge) 탭</strong>에서 <strong>'+ 지식 추가' -> '파일(Files)'</strong>을 선택하여 방금 준비한 <code>.txt</code> 파일을 업로드합니다.</li>
+                            <li>지침(Instructions) 입력창에 아래 내용을 복사하여 넣습니다. <strong>(본인 이름 수정 필수!)</strong></li>
+                        </ol>
+                        
+                        <div class="relative bg-gray-50 dark:bg-gray-900 rounded-xl p-4 border border-gray-200 dark:border-gray-700 group mb-4">
+                            <p id="prompt-6" class="text-gray-800 dark:text-gray-200 text-sm font-mono whitespace-pre-wrap pr-10">너는 업로드된 카카오톡 대화 파일(.txt)을 완벽하게 분석하여 내 말투를 학습한 '나의 디지털 클론'이야. 
+업로드된 파일에서 [본인 이름 입력] 이라는 화자가 작성한 메시지의 패턴, 말투, 자주 쓰는 추임새, 이모티콘 사용 방식 등을 철저히 분석해 줘. 
+
+누군가 너에게 대화를 걸면 기계적인 AI처럼 대답하지 말고, 파일에서 추출한 내 '카톡 말투'를 그대로 흉내내서 진짜 나처럼 리얼하게 대답해야 해.</p>
+                            <button onclick="copyText('prompt-6')" class="absolute top-3 right-3 p-2 bg-white dark:bg-gray-800 shadow-sm rounded-lg text-gray-500 hover:text-purple-600 hover:bg-purple-50 transition-colors opacity-100 md:opacity-0 group-hover:opacity-100">
+                                <i class="fa-regular fa-copy"></i>
+                            </button>
+                        </div>
+                        <div class="p-3 bg-purple-50 dark:bg-purple-900/20 text-purple-800 dark:text-purple-200 rounded-lg text-sm flex items-center">
+                            <i class="fa-solid fa-vial text-purple-600 mr-2 text-lg"></i> 
+                            <div>
+                                <strong>테스트 창에 말을 걸어보세요:</strong> "오늘 진짜 피곤하다 ㅠㅠ", "주말에 보통 뭐해?" 라고 입력했을 때, 내 카톡 말투와 똑같이 나오면 대성공입니다!
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            
+            <div class="mt-16 text-center text-sm text-gray-400 dark:text-gray-500 pb-10">
+                &copy; 가치있는 미래교육 연구소. All rights reserved.
+            </div>
+        </div>
+    </main>
+
+    <!-- 복사 완료 토스트 알림 -->
+    <div id="toast" class="fixed bottom-6 right-6 bg-gray-900 dark:bg-white text-white dark:text-gray-900 px-4 py-3 rounded-lg shadow-xl hidden items-center gap-3 z-50 transition-transform">
+        <i class="fa-solid fa-circle-check text-green-400 dark:text-green-600"></i>
+        <span class="text-sm font-medium">프롬프트가 클립보드에 복사되었습니다!</span>
+    </div>
+
+    <script>
+        // 초기 다크모드 설정 체크
+        if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark');
+        } else {
+            document.documentElement.classList.remove('dark');
+        }
+
+        // 다크모드 토글 함수
+        function toggleTheme() {
+            if (document.documentElement.classList.contains('dark')) {
+                document.documentElement.classList.remove('dark');
+                localStorage.setItem('theme', 'light');
+            } else {
+                document.documentElement.classList.add('dark');
+                localStorage.setItem('theme', 'dark');
+            }
+        }
+
+        // 모바일 메뉴 토글
+        const mobileMenu = document.getElementById('mobile-menu');
+        function toggleMobileMenu() {
+            if (mobileMenu.classList.contains('hidden')) {
+                mobileMenu.classList.remove('hidden');
+            } else {
+                mobileMenu.classList.add('hidden');
+            }
+        }
+
+        // 탭 전환 로직
+        function switchTab(tabId) {
+            // 모든 섹션 숨기기
+            document.querySelectorAll('.content-section').forEach(section => {
+                section.classList.remove('block');
+                section.classList.add('hidden');
+            });
+            // 선택한 섹션 보이기
+            const activeSection = document.getElementById(tabId);
+            activeSection.classList.remove('hidden');
+            activeSection.classList.add('block');
+
+            // 데스크탑 네비게이션 활성화 스타일 업데이트
+            document.querySelectorAll('#desktop-nav .nav-item').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            const activeDesktopBtn = document.querySelector(`#desktop-nav button[onclick="switchTab('${tabId}')"]`);
+            if(activeDesktopBtn) activeDesktopBtn.classList.add('active');
+
+            // 모바일 네비게이션 활성화 스타일 업데이트
+            document.querySelectorAll('#mobile-nav .nav-item-mobile').forEach(btn => {
+                btn.classList.remove('active-mobile');
+                btn.querySelector('i').classList.remove('text-brand-600', 'dark:text-blue-400');
+                btn.querySelector('i').classList.add('text-gray-500');
+            });
+            // 모바일 인라인 onclick엔 toggle이 붙어있으므로 includes 로 찾기
+            const mobileBtns = document.querySelectorAll('#mobile-nav .nav-item-mobile');
+            mobileBtns.forEach(btn => {
+                if(btn.getAttribute('onclick').includes(tabId)) {
+                    btn.classList.add('active-mobile');
+                    btn.querySelector('i').classList.remove('text-gray-500');
+                    btn.querySelector('i').classList.add('text-brand-600', 'dark:text-blue-400');
+                }
+            });
+
+            // 페이지 상단으로 스크롤 부드럽게 이동
+            document.querySelector('main').scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // 텍스트 복사 로직 (iframe 환경 호환을 위해 구식+신식 API 병행 사용)
+        function copyText(elementId) {
+            const textToCopy = document.getElementById(elementId).innerText;
+            
+            // Clipboard API 시도
+            if (navigator.clipboard && window.isSecureContext) {
+                navigator.clipboard.writeText(textToCopy).then(() => {
+                    showToast();
+                }).catch(err => {
+                    fallbackCopyTextToClipboard(textToCopy);
+                });
+            } else {
+                // Fallback
+                fallbackCopyTextToClipboard(textToCopy);
+            }
+        }
+
+        function fallbackCopyTextToClipboard(text) {
+            const textArea = document.createElement("textarea");
+            textArea.value = text;
+            textArea.style.position = "fixed";  // 화면 흔들림 방지
+            textArea.style.left = "-999999px";
+            textArea.style.top = "-999999px";
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+            try {
+                document.execCommand('copy');
+                showToast();
+            } catch (err) {
+                console.error('복사 실패', err);
+            }
+            document.body.removeChild(textArea);
+        }
+
+        // 토스트 알림 표시
+        let toastTimeout;
+        function showToast() {
+            const toast = document.getElementById('toast');
+            toast.classList.remove('hidden');
+            toast.classList.add('flex', 'toast-animate');
+            
+            clearTimeout(toastTimeout);
+            toastTimeout = setTimeout(() => {
+                toast.classList.remove('flex', 'toast-animate');
+                toast.classList.add('hidden');
+            }, 2500);
+        }
+    </script>
+</body>
+</html>
